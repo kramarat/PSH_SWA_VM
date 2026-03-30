@@ -1,0 +1,4 @@
+0.40
+Adaptive -> Simple O(n^2)
+15
+sa:0 sb:0 ss:0 pa:5 pb:5 ra:4 rb:0 rr:0 rra:1 rrb:0 rrr:0

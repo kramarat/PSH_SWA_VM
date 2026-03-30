@@ -1,0 +1,257 @@
+Push_Swap Notes (Restored Full Version)
+
+==================================================
+HOW TO SHOW RUNTIME STRATEGY SELECTION TO AN EVALUATOR
+==================================================
+
+Requirement to demonstrate
+- “The program must be able to select one strategy or another during execution,
+  depending on the input configuration.”
+
+What this repository now provides
+- Four concrete sorting strategies:
+  - `--simple`
+  - `--insertion`
+  - `--medium`
+  - `--complex`
+- One adaptive selector:
+  - `--adaptive`
+- In adaptive mode, the program analyzes the input and chooses one of the four
+  concrete strategies at runtime.
+- With `--bench`, the benchmark output shows the strategy actually used.
+
+Fast evaluator demo (recommended)
+1) Build:
+   - `make`
+
+2) Show manual selection by input configuration flags:
+   - `./push_swap --simple 5 4 3 2 1 | ./checker_linux 5 4 3 2 1`
+   - `./push_swap --insertion 5 1 4 2 3 | ./checker_linux 5 1 4 2 3`
+   - `./push_swap --medium 8 3 6 1 9 2 5 4 7 | ./checker_linux 8 3 6 1 9 2 5 4 7`
+   - `./push_swap --complex 8 3 6 1 9 2 5 4 7 | ./checker_linux 8 3 6 1 9 2 5 4 7`
+   Expected result: `OK` every time.
+
+3) Show automatic runtime selection:
+   - Nearly sorted / very small case:
+     `./push_swap --adaptive --bench 1 2 3 5 4`
+   - Small-to-medium moderate disorder case:
+     `./push_swap --adaptive --bench 5 1 4 2 3`
+   - Medium chunk-sort case:
+     `./push_swap --adaptive --bench 8 3 6 1 9 2 5 4 7`
+   - Large / highly disordered case:
+     `nums=($(shuf -i 1-100 -n 100)) && ./push_swap --adaptive --bench "${nums[@]}" >/dev/null`
+
+4) Explain the benchmark output:
+   - First line: disorder score.
+   - Second line: selected strategy.
+   - If adaptive mode is used, it prints something like:
+     - `Adaptive -> Simple O(n^2)`
+     - `Adaptive -> Insertion O(n^2)`
+     - `Adaptive -> Medium O(n √n)`
+     - `Adaptive -> Complex O(n log n)`
+   - Third line: total operation count.
+
+Short explanation to say out loud
+- “This repository implements four concrete sorting strategies and one adaptive
+  selector. The selector evaluates the input at runtime and chooses the most
+  appropriate strategy according to input size and disorder. I can also force
+  each strategy manually with flags to prove that all of them are integrated.”
+
+Minimal proof script
+- `make && ./push_swap --simple 4 3 2 1 | ./checker_linux 4 3 2 1`
+- `./push_swap --insertion 5 1 4 2 3 | ./checker_linux 5 1 4 2 3`
+- `./push_swap --medium 8 3 6 1 9 2 5 4 7 | ./checker_linux 8 3 6 1 9 2 5 4 7`
+- `./push_swap --complex 8 3 6 1 9 2 5 4 7 | ./checker_linux 8 3 6 1 9 2 5 4 7`
+- `./push_swap --adaptive --bench 5 1 4 2 3`
+
+What to emphasize if asked
+- The requirement is not only documented; it is implemented in code.
+- Each concrete strategy is callable directly by flag.
+- Adaptive mode makes the runtime decision automatically.
+- The benchmark output exposes the actual strategy chosen, which makes the
+  requirement easy to demonstrate during evaluation.
+
+Project status
+- Entry point is in push_swap.c
+- Build flags: -Wall -Werror -Wextra
+- Baseline check passes with checker
+
+==================================================
+COUNT-ONLY LIVE CODING REQUIREMENT
+==================================================
+
+Feature goal
+- Add flag --count-only so push_swap prints ONLY total operation count.
+- Normal mode (checker flow) must remain unchanged.
+
+Where to edit
+1) push_swap.h
+- Add global declaration:
+  extern int	g_count_only;
+
+2) push_swap.c
+- Add global definition near top:
+  int	g_count_only = 0;
+
+- In parse_args(...), add:
+  else if (strcmp(argv[i], "--count-only") == 0 || strcmp(argv[i], "--count") == 0)
+	g_count_only = 1;
+
+- After sorting in main:
+  if (g_count_only)
+  {
+	int	total_ops;
+	total_ops = counts.sa + counts.sb + counts.ss + counts.pa + counts.pb
+		+ counts.ra + counts.rb + counts.rr + counts.rra + counts.rrb + counts.rrr;
+	dprintf(1, "%d\n", total_ops);
+  }
+  else if (bench)
+	output_bench(disorder, strategy, counts);
+
+3) Operation wrappers
+- Files:
+  aux_swap.c, aux_push.c, aux_rotate.c, aux_reverse_rotate.c
+- For each wrapper (sa/sb/ss/pa/pb/ra/rb/rr/rra/rrb/rrr):
+  - keep counts->...++ unchanged
+  - guard write with:
+    if (!g_count_only)
+	write(1, "op\n", len);
+
+Example wrapper pattern
+- sa:
+  swap(a);
+  counts->sa++;
+  if (!g_count_only)
+	write(1, "sa\n", 3);
+
+- pb:
+  push(b, a);
+  counts->pb++;
+  if (!g_count_only)
+	write(1, "pb\n", 3);
+
+==================================================
+LIVE CODING SCRIPT (10 MINUTES)
+==================================================
+
+Minute 0-1 (baseline)
+- Build project.
+- Validate normal behavior with checker on a tiny input.
+
+Minute 1-2 (declare mode)
+- Add global declaration in header.
+- Add global definition in push_swap.c.
+
+Minute 2-4 (parse)
+- Add parser branch for --count-only and --count.
+
+Minute 4-7 (gate operation output)
+- Edit all operation wrappers to print only when count-only is disabled.
+
+Minute 7-8 (final total print)
+- Add post-sort total operation print when count-only is enabled.
+- Keep bench behavior in else-if branch.
+
+Minute 8-10 (demo)
+- Show count-only output (single number).
+- Show normal checker path still OK.
+- Show bench still works.
+
+What to say out loud
+1) “I added one global mode flag and parsed one option.”
+2) “I did not change algorithm logic; only output gating.”
+3) “In count-only mode I print one final total; checker mode remains untouched.”
+
+==================================================
+TESTS (FULL CHECKLIST)
+==================================================
+
+A) Build and smoke
+1) make
+2) ./push_swap 3 2 1 | ./checker_linux 3 2 1
+Expected: OK
+
+B) Basic correctness
+1) ./push_swap 1 2 3
+Expected: no operations
+2) ./push_swap 2 1
+Expected: valid op sequence (typically sa)
+3) ./push_swap 4 3 2 1 | ./checker_linux 4 3 2 1
+Expected: OK
+
+C) Error handling
+1) ./push_swap 1 2 2
+Expected: Error
+2) ./push_swap 2147483648
+Expected: Error
+3) ./push_swap hola
+Expected: Error
+4) ./push_swap
+Expected: no output, exit 0
+
+D) Strategy checks
+1) ./push_swap --simple 5 4 3 2 1
+2) ./push_swap --complex 5 4 3 2 1
+3) ./push_swap --adaptive --bench 5 4 3 2 1
+Expected: valid output; checker OK when piped in normal mode
+
+E) Count-only checks (after implementation)
+1) ./push_swap --count-only 3 2 1
+Expected: one number only
+2) ./push_swap --count 3 2 1
+Expected: same behavior as --count-only
+3) ./push_swap --count-only 4 3 2 1
+Expected: one number only
+
+Important:
+- Do NOT pipe count-only output into checker.
+- Checker expects operation names, not a numeric total.
+
+F) Random tests (zsh-safe)
+Use same list for both program and checker.
+
+100 numbers
+- nums=($(shuf -i 1-100 -n 100))
+- ./push_swap "${nums[@]}" | ./checker_linux "${nums[@]}"
+Expected: OK
+- ./push_swap "${nums[@]}" | wc -l
+Observed in this repo: around ~1000-1100
+
+500 numbers
+- nums=($(shuf -i 1-500 -n 500))
+- ./push_swap "${nums[@]}" | ./checker_linux "${nums[@]}"
+Expected: OK
+
+SIGPIPE note
+- If you see signal 13, inputs/pipeline are mismatched.
+- Ensure checker receives the exact same input sequence.
+
+==================================================
+ORAL REHEARSAL (MOCK Q&A)
+==================================================
+
+Q1) What is push_swap goal?
+- Sort stack a using only allowed operations and helper stack b, minimizing moves.
+
+Q2) Which operations are allowed?
+- sa sb ss pa pb ra rb rr rra rrb rrr
+
+Q3) How do you validate input?
+- Reject non-numeric values, overflow, and duplicates; print Error.
+
+Q4) What about empty/sorted input?
+- Empty exits quietly; sorted prints no operations.
+
+Q5) How do you test correctness?
+- Pipe normal output to checker with identical input list and expect OK.
+
+Q6) Common pitfalls?
+- zsh argument splitting, mismatched random lists, sending non-op output to checker.
+
+Q7) Why no libft / ft_printf here?
+- Not required for mandatory push_swap.
+- write + project utilities are enough.
+- Dependency-free repo is valid and cleaner for this implementation.
+
+One-liner for evaluator
+- “This repository intentionally avoids libft/ft_printf because mandatory push_swap does not require them, and parsing/output are implemented with allowed standard functions and project utilities.”
