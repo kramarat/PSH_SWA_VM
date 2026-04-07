@@ -77,7 +77,93 @@ Project status
 - Baseline check passes with checker
 
 ==================================================
-COUNT-ONLY LIVE CODING REQUIREMENT
+LIVE CODING: IMPLEMENT --count-only FLAG (5 MIN)
+==================================================
+
+WHAT THE EVALUATOR ASKS:
+  "Add a --count-only flag so ./push_swap --count-only 3 2 1 prints only '3' 
+   (the total operation count) instead of all the move commands."
+
+STEP-BY-STEP DUMBASS PROCEDURE:
+
+STEP 1: Open parsing.c (30 seconds)
+  - Goal: Add code to recognize and toggle the --count-only flag
+  - Look for the line where `strcmp(argv[i], "--bench")` is checked
+  - RIGHT AFTER that `if` block, add:
+    ```c
+    if (strcmp(argv[i], "--count-only") == 0)
+    {
+        opts->count_only = 1;
+        continue;
+    }
+    ```
+  - This tells the program "I saw --count-only, turn on the flag"
+
+STEP 2: Open push_swap.h (30 seconds)
+  - Goal: Add count_only field to t_parse_opts struct
+  - Find the `t_parse_opts` definition (around line 40-50)
+  - Inside the struct (after `int bench;`), add:
+    ```c
+    int         count_only;
+    ```
+  - This creates a variable to remember if --count-only was used
+
+STEP 3: Initialize the field in parsing.c (20 seconds)
+  - Find the line `opts->bench = 0;` at the start of parse_args()
+  - RIGHT AFTER it, add:
+    ```c
+    opts->count_only = 0;
+    ```
+  - This makes sure the flag starts as OFF
+
+STEP 4: Open push_swap.c main() (60 seconds)
+  - Find this block:
+    ```c
+    if (opts.bench)
+        output_bench(disorder, strategy_input, strategy_actual, counts);
+    ```
+  - REPLACE it with:
+    ```c
+    if (opts.count_only)
+    {
+        int total = counts.sa + counts.sb + counts.ss + counts.pa + counts.pb
+                  + counts.ra + counts.rb + counts.rr + counts.rra + counts.rrb + counts.rrr;
+        printf("%d\n", total);
+    }
+    else if (opts.bench)
+        output_bench(disorder, strategy_input, strategy_actual, counts);
+    ```
+  - Translation: "If count_only is ON, just print the total. Otherwise, do benchmark."
+
+STEP 5: Test (60 seconds per test)
+  Test 1 - Count only mode:
+    `./push_swap --count-only 3 2 1`
+    Should print: `3` (or `2` — any small number, not 10+ lines of commands)
+
+  Test 2 - Normal mode still works:
+    `./push_swap 3 2 1`
+    Should print: full list of operations (like `sa`, `pb`, `ra`, etc.)
+
+STEP 6: Rebuild (20 seconds)
+  `make clean && make`
+
+TOTAL TIME: ~4 minutes if you move fast
+
+WHAT TO SAY IF STUCK:
+  "I need to add a struct field to track the flag, check for it in parsing, 
+   and suppress operation output when count_only is ON. Let me do this step by step."
+
+WHAT NOT TO DO:
+  ❌ Don't modify the sorting logic itself
+  ❌ Don't touch aux_*.c or sorting*.c files
+  ❌ Don't change how operations are printed — just intercept the final output
+
+KEY FILES TO TOUCH (ONLY 3):
+  1. parsing.c — add the --count-only flag check
+  2. push_swap.h — add count_only field to struct
+  3. push_swap.c — add the if/else in main() to conditionally print
+
+THAT'S IT. No complexity. You now have 4 test files open in your head.
 ==================================================
 
 Feature goal

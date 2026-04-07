@@ -12,61 +12,61 @@
 
 #include "push_swap.h"
 
-/* Returns the number of nodes in the stack */
+/* Count nodes in a stack. */
 int	stack_size(t_stack_node *stack)
 {
-	int	size; // Counter for the size
+	int	size;
 
-	size = 0; // Initialize size to 0
-	while (stack) // Loop through each node in the stack
+	size = 0;
+	while (stack)
 	{
-		size++; // Increment size for each node
-		stack = stack->next; // Move to the next node
+		size++;
+		stack = stack->next;
 	}
-	return (size); // Return the total size
+	return (size);
 }
 
-/* Finds and returns the last node in the stack */
+/* Return last node in stack, or NULL if empty. */
 t_stack_node	*find_last_node(t_stack_node *stack)
 {
-	if (!stack) // If stack is empty, return NULL
+	if (!stack)
 		return (NULL);
-	while (stack->next) // Traverse to the end of the stack
-		stack = stack->next; // Move to the next node
-	return (stack); // Return the last node
+	while (stack->next)
+		stack = stack->next;
+	return (stack);
 }
 
-/* Adds a new node with the given number to the end of the stack */
+/* Append one new value at the end of stack. */
 void	add_node(t_stack_node **stack, int number)
 {
-	t_stack_node	*new_node; // Pointer to the new node
-	t_stack_node	*last; // Pointer to the last node
+	t_stack_node	*new_node;
+	t_stack_node	*last;
 
-	new_node = malloc(sizeof(t_stack_node)); // Allocate memory for new node
-	if (!new_node) // If malloc fails, do nothing (error handling elsewhere)
+	new_node = malloc(sizeof(t_stack_node));
+	if (!new_node)
 		return ;
-	new_node->number = number; // Set the number
-	new_node->next = NULL; // New node is the last, so next is NULL
-	new_node->previous = NULL; // Will be set below
-	if (!*stack) // If stack is empty, new node is the first
+	new_node->number = number;
+	new_node->next = NULL;
+	new_node->previous = NULL;
+	if (!*stack)
 	{
-		*stack = new_node; // Set stack to new node
+		*stack = new_node;
 		return ;
 	}
-	last = find_last_node(*stack); // Find the current last node
-	last->next = new_node; // Link last to new node
-	new_node->previous = last; // Link new node back to last
+	last = find_last_node(*stack);
+	last->next = new_node;
+	new_node->previous = last;
 }
 
-/* Frees all nodes in the stack */
+/* Free all nodes in stack and leave it empty. */
 void	free_stack(t_stack_node **stack)
 {
-	t_stack_node	*temp; // Temporary pointer to hold current node
+	t_stack_node	*temp;
 
-	while (*stack) // While there are nodes in the stack
+	while (*stack)
 	{
-		temp = *stack; // Save current node
-		*stack = (*stack)->next; // Move to next node
-		free(temp); // Free the saved node
+		temp = *stack;
+		*stack = (*stack)->next;
+		free(temp);
 	}
 }

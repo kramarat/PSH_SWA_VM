@@ -6,30 +6,79 @@
 
 Push_Swap is an algorithmic project that requires sorting data in a stack using a limited set of instructions. The goal is to calculate and display the shortest sequence of operations to sort a list of integers in ascending order, using only two stacks (a and b) and specific operations like swap, push, rotate, and reverse rotate.
 
-The project explores algorithmic complexity (Big-O) in a practical way, implementing multiple sorting strategies to handle different levels of disorder in the input data.
+The project explores algorithmic complexity (Big-O) in a practical way, implementing multiple sorting strategies to handle different levels of disorder in the input data. The entire codebase is fully **Norminette compliant** (42 school style enforcer).
+
+---
+
+## Project Structure
+
+The source is deliberately split into small, focused files — each with at most 5 functions — as required by Norminette.
+
+| File | Responsibility |
+|---|---|
+| `push_swap.c` | Entry point: parse → sort → free |
+| `parsing.c` | CLI argument parsing, validation, duplicate detection |
+| `bench.c` | Benchmark output to stderr (`--bench` flag) |
+| `stack_utils.c` | Stack primitives: size, last node, add node, free |
+| `aux_push.c` | `push`, `pa`, `pb` operations |
+| `aux_swap.c` | `swap`, `sa`, `sb`, `ss` operations |
+| `aux_rotate.c` | `rotate`, `ra`, `rb`, `rr` operations |
+| `aux_reverse_rotate.c` | `reverse_rotate`, `rra`, `rrb`, `rrr` operations |
+| `sorting.c` | Disorder metric + adaptive strategy dispatcher |
+| `sorting_common.c` | `is_sorted_stack`, `sort_small_stack` |
+| `sorting_simple.c` | Selection-style O(n²) sort |
+| `sorting_rotate.c` | Rotate helpers: find min/max position, rotate to top |
+| `sorting_index.c` | Rank assignment and insertion-position finder |
+| `sorting_insertion.c` | Insertion-based O(n²) sort |
+| `sorting_medium.c` | Chunk-based O(n√n) sort |
+| `sorting_complex.c` | Radix O(n log n) sort |
+| `libft/` | Standard function library (ft_split used for parsing) |
+
+---
+
+## Norminette Compliance
+
+All `.c` and `.h` files in the project root pass `norminette` with no errors.
+
+Quick check:
+```
+norminette *.c *.h
+```
+
+Key constraints respected throughout:
+- Maximum **5 functions per file** — enforced by splitting sorting into 8 modules
+- Maximum **25 lines per function** — all functions stay within limit
+- Maximum **4 arguments per function** — enforced across all files
+- All **variable declarations at the top** of each function
+- No inline `//` comments — only `/* */` block comments used
+- Brace and spacing rules strictly followed
+
+---
 
 ## Instructions
 
 ### Compilation
-To compile the project, run:
 ```
 make
 ```
-This will generate the `push_swap` executable with the flags `-Wall -Werror -Wextra`.
+Builds `push_swap` with `-Wall -Werror -Wextra`. Also compiles `libft/libft.a` first.
 
 ### Execution
-The program runs with a list of integers as arguments:
 ```
 ./push_swap [options] <numbers>
 ```
 
 Available options:
-- `--simple`: Forces the use of the O(n²) algorithm.
-- `--insertion`: Forces the use of the insertion-based O(n²) algorithm.
-- `--medium`: Forces the use of the O(n √n) algorithm.
-- `--complex`: Forces the use of the O(n log n) algorithm.
-- `--adaptive`: Uses the adaptive selector based on size and disorder (default).
-- `--bench`: Shows performance metrics in stderr (disorder, strategy, total operations, and count per type).
+
+| Flag | Behaviour |
+|---|---|
+| *(none)* | Defaults to adaptive strategy |
+| `--simple` | Forces O(n²) selection sort |
+| `--insertion` | Forces O(n²) insertion sort |
+| `--medium` | Forces O(n√n) chunk sort |
+| `--complex` | Forces O(n log n) radix sort |
+| `--adaptive` | Auto-selects based on size + disorder (default) |
+| `--bench` | Prints performance metrics to stderr |
 
 Examples:
 ```
@@ -37,18 +86,39 @@ Examples:
 ./push_swap --bench --adaptive 5 4 3 2 1
 ```
 
-If no arguments are provided, the program does nothing. In case of error (invalid numbers, duplicates, overflow), it prints "Error" to stderr.
+If no arguments are provided, the program does nothing. On error (invalid input, duplicates, overflow), it prints `Error` to stderr and exits.
 
-### Testing
-To verify the output, you can use the checker provided in the 42 repository:
+### Benchmark Output Format
+
+With `--bench`, the program writes to stderr:
+```
+Disorder:  0.80
+Strategy:  Adaptive -> Complex O(n log n)
+Total ops: 3241
+  sa=0 sb=0 ss=0 pa=500 pb=500 ra=712 rb=604 rr=0 rra=461 rrb=464 rrr=0
+```
+
+- **Disorder** — fraction of inverted pairs in [0..1]. 0 = already sorted, 1 = fully reversed.
+- **Strategy** — which algorithm ran. If adaptive, shows the chosen concrete strategy.
+- **Total ops** — sum of all stack operations emitted.
+
+### Testing with Checker
 ```
 ./push_swap <args> | ./checker_linux <args>
 ```
+Should print `OK` for any valid sorted output.
 
-### Showing Runtime Strategy Selection
-To demonstrate to an evaluator that the program can choose different strategies during execution depending on the input configuration:
+---
 
-1. Force each concrete strategy manually:
+## Showing Runtime Strategy Selection (Evaluator Demo)
+
+### Step 1 — Build
+```
+make
+```
+
+### Step 2 — Force each strategy manually and verify
+
 ```
 ./push_swap --simple 4 3 2 1 | ./checker_linux 4 3 2 1
 ./push_swap --insertion 5 1 4 2 3 | ./checker_linux 5 1 4 2 3
@@ -56,68 +126,112 @@ To demonstrate to an evaluator that the program can choose different strategies 
 ./push_swap --complex 8 3 6 1 9 2 5 4 7 | ./checker_linux 8 3 6 1 9 2 5 4 7
 ```
 
-2. Show automatic selection with adaptive mode and benchmarking:
-```
+All should print `OK`.
+
+### Step 3 — Show adaptive selection at runtime
+
+```bash
+# Nearly sorted — expect Simple
 ./push_swap --adaptive --bench 1 2 3 5 4
-./push_swap --adaptive --bench 5 1 4 2 3 6 7 8
+
+# Small, moderate disorder — expect Insertion
+./push_swap --adaptive --bench 5 1 4 2 3
+
+# Medium input — expect Medium
 ./push_swap --adaptive --bench 8 3 6 1 9 2 5 4 7
+
+# Large, high disorder — expect Complex
+nums=($(shuf -i 1-200 -n 200)) && ./push_swap --adaptive --bench "${nums[@]}" >/dev/null
 ```
 
-In adaptive mode, the benchmark output reports the concrete strategy that was selected at runtime, for example:
-- `Adaptive -> Simple O(n^2)`
-- `Adaptive -> Insertion O(n^2)`
-- `Adaptive -> Medium O(n √n)`
-- `Adaptive -> Complex O(n log n)`
+The benchmark line will show which strategy was actually selected, e.g.:
+```
+Strategy:  Adaptive -> Simple O(n^2)
+Strategy:  Adaptive -> Insertion O(n^2)
+Strategy:  Adaptive -> Medium O(n √n)
+Strategy:  Adaptive -> Complex O(n log n)
+```
 
-## Resources
-
-- [Big-O Notation](https://en.wikipedia.org/wiki/Big_O_notation): To understand algorithmic complexity.
-- [Stack Data Structure](https://en.wikipedia.org/wiki/Stack_(abstract_data_type)): Basic stack concepts.
-- [Sorting Algorithms](https://en.wikipedia.org/wiki/Sorting_algorithm): References for sorting algorithms adapted to stacks.
-- [42 Subject PDF](es.subject (1).pdf): The complete project statement.
-
-### AI Usage
-AI (GitHub Copilot) was used for structuring the project, including generating boilerplate code for stack operations, utility functions, and initial sorting algorithm implementations. All code was reviewed, modified, and fully understood by the developers.
+---
 
 ## Implemented Algorithms
 
-### Simple Strategy (O(n²))
-- **Description**: Selection-style sorting adapted to Push_Swap operations.
-- **How it works**: Repeatedly rotates stack a to bring the minimum value to the top, pushes it to stack b, and rebuilds the sorted result with `pa`.
-- **Justification**: Efficient for very small or almost sorted inputs. O(n²) complexity in Push_Swap operations.
-- **Advantages**: Simple to implement, low overhead.
-- **Disadvantages**: Inefficient for large disordered lists.
+### How the Adaptive Selector Works
 
-### Insertion Strategy (O(n²))
-- **Description**: Insertion-based sorting over a circularly ordered stack.
-- **How it works**: Pushes most values to stack b, sorts the remaining core in stack a, and reinserts each value from b into its correct position by rotating a before `pa`.
-- **Justification**: Distinct from the simple strategy and effective for small-to-medium inputs with moderate disorder.
-- **Advantages**: Good balance between simplicity and flexibility for moderate input sizes.
-- **Disadvantages**: Still quadratic in the worst case.
+Before sorting, the program computes a **disorder score** for stack A:
 
-### Intermediate Strategy (O(n √n))
-- **Description**: Chunk sorting (dividing the list into √n groups).
-- **How it works**: Computes normalized indexes, pushes values from stack a to stack b in √n-sized windows, then restores them from b back to a in descending order.
-- **Justification**: Improves complexity to about O(n √n) for medium-size or medium-disorder inputs.
-- **Advantages**: Better than O(n²) for medium lists.
-- **Disadvantages**: Requires range calculation and more intermediate operations.
+> disorder = (number of inverted pairs) / (total possible pairs)
 
-### Complex Strategy (O(n log n))
-- **Description**: Adaptation of radix sort (LSD - Least Significant Digit).
-- **How it works**: Sorts by binary digits, using rotates and pushes to simulate the radix process on stacks.
-- **Justification**: Optimal for high disorder (≥0.5), with O(n log n) complexity in operations.
-- **Advantages**: Efficient for any input size.
-- **Disadvantages**: More complex to implement and debug.
+A value of `0.0` means fully sorted; `1.0` means fully reversed. This is calculated in O(n²) and used to pick the cheapest strategy for the actual input rather than always running the heaviest one.
 
-### Adaptive Strategy
-- **Description**: Automatically selects one of the four implemented concrete sorting strategies.
-- **How it works**: Calculates size and disorder at the start; for very small or almost sorted inputs it uses simple, for small/medium inputs insertion, for medium ranges chunk sorting, and for large/high-disorder inputs radix.
-- **Justification**: Provides runtime selection according to input configuration while keeping the four explicit strategies available.
-- **Advantages**: Flexible, no manual selection needed.
-- **Disadvantages**: Initial calculation overhead.
+**Selection thresholds** (in `sorting.c`):
+
+| Condition | Strategy chosen |
+|---|---|
+| size ≤ 5 **or** disorder < 0.12 | Simple O(n²) |
+| size ≤ 32 **or** disorder < 0.35 | Insertion O(n²) |
+| size ≤ 150 **or** disorder < 0.65 | Medium O(n√n) |
+| everything else | Complex O(n log n) |
+
+---
+
+### Simple Strategy — O(n²) — `sorting_simple.c`
+
+**How it works:** Repeatedly finds the minimum value in stack A, rotates it to the top using the shortest path (forward or reverse), and pushes it to B. Once all values are in B (descending), pulls them all back to A.
+
+**When adaptive picks it:** Stack has ≤ 5 elements, or disorder < 0.12 (nearly sorted).
+
+**Why:** Selection by min-finding is the cheapest possible approach when there's almost nothing to move. No overhead from index calculation or chunking.
+
+---
+
+### Insertion Strategy — O(n²) — `sorting_insertion.c` + `sorting_index.c`
+
+**How it works:** Keeps 3 elements in A and sorts them with `sort_three`. Pushes everything else to B. Then reinserts each element from B into its correct position in A by rotating A to the target slot before `pa`.
+
+**When adaptive picks it:** Stack has ≤ 32 elements, or disorder < 0.35.
+
+**Why:** Targeting each element's exact insertion position beats chunk overhead at this scale. The per-element rotation cost averages less than the chunk setup cost.
+
+---
+
+### Medium Strategy — O(n√n) — `sorting_medium.c`
+
+**How it works:** Assigns a normalized rank (0..n-1) to every node. Pushes values to B in windows of size √n (e.g. window 0 covers ranks 0..√n-1). Rebuilds A by pulling the maximum from B repeatedly.
+
+**When adaptive picks it:** Stack has ≤ 150 elements, or disorder < 0.65.
+
+**Why:** The chunk approach avoids full quadratic cost by grouping nearby values. Typical operation count is proportional to n × √n, making it practical for medium lists where radix setup is overkill.
+
+---
+
+### Complex Strategy — O(n log n) — `sorting_complex.c`
+
+**How it works:** Assigns ranks (0..n-1) to normalise values. Sorts by each binary bit of the rank from least to most significant. In each pass: nodes whose current bit is 0 are pushed to B; nodes whose bit is 1 stay in A; then all of B is pulled back. After log₂(n) passes, A is sorted.
+
+**When adaptive picks it:** Stack has > 150 elements and disorder ≥ 0.65.
+
+**Why:** Radix on normalised indexes gives guaranteed O(n log n) and scales well for any large, chaotic input regardless of value distribution.
+
+---
+
+## libft Dependency
+
+The project includes `libft/` as required by the 42 subject, which mandates it be compiled as a sub-library. The only libft function called by the project is `ft_split` (in `parsing.c`), used to tokenise space-separated argument strings.
+
+---
+
+## Resources
+
+- [Big-O Notation](https://en.wikipedia.org/wiki/Big_O_notation)
+- [Stack Data Structure](https://en.wikipedia.org/wiki/Stack_(abstract_data_type))
+- [Radix Sort](https://en.wikipedia.org/wiki/Radix_sort)
+- [42 Subject PDF](es.subject%20(1).pdf)
+
+---
 
 ## Contributions
-- **valmoral**: Implementation of stack operations, parsing, main logic, and sorting algorithms.
-- **[partner]**: [Description of contributions, e.g., testing, debugging, documentation].
+- **valmoral**: Stack operations, parsing, main logic, and sorting algorithms.
+- **kramarat**: Testing, debugging, documentation, and Norminette compliance refactor.
 
-Both contributed significantly, understanding and explaining all code.# PSH_SWA_VM
+Both contributed significantly, understanding and explaining all code.

@@ -12,7 +12,7 @@
 
 #include "push_swap.h"
 
-/*Pushes the first node from stack src into stack dest*/
+/* Move top node from src to dest. */
 void	push(t_stack_node **dest, t_stack_node **src)
 {
 	t_stack_node	*node_to_push;
@@ -37,6 +37,7 @@ void	push(t_stack_node **dest, t_stack_node **src)
 	}
 }
 
+/* Push from B to A + emit operation. */
 void	pa(t_stack_node **a, t_stack_node **b, t_op_counts *counts)
 {
 	push(a, b);
@@ -44,6 +45,7 @@ void	pa(t_stack_node **a, t_stack_node **b, t_op_counts *counts)
 	write(1, "pa\n", 3);
 }
 
+/* Push from A to B + emit operation. */
 void	pb(t_stack_node **a, t_stack_node **b, t_op_counts *counts)
 {
 	push(b, a);

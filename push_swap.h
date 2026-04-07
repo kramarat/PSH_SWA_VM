@@ -10,7 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-/*TEMPPPPP - modify asap*/
+/* Core declarations for push_swap. */
 #ifndef PUSH_SWAP_H
 # define PUSH_SWAP_H
 
@@ -34,7 +34,7 @@ typedef struct s_op_counts
 	int	rra;
 	int	rrb;
 	int	rrr;
-} 	t_op_counts;
+}	t_op_counts;
 
 typedef enum e_strategy
 {
@@ -43,7 +43,13 @@ typedef enum e_strategy
 	MEDIUM,
 	COMPLEX,
 	ADAPTIVE
-} 	t_strategy;
+}	t_strategy;
+
+typedef struct s_parse_opts
+{
+	t_strategy	strategy;
+	int			bench;
+}	t_parse_opts;
 
 /*	T_STACK_NODE STRUCTURE 
 
@@ -81,7 +87,7 @@ void			ss(t_stack_node **a, t_stack_node **b, t_op_counts *counts);
 //	aux_push.C
 void			push(t_stack_node **dest, t_stack_node **src);
 void			pa(t_stack_node **a, t_stack_node **b, t_op_counts *counts);
-void			pb(t_stack_node **b, t_stack_node **a, t_op_counts *counts);
+void			pb(t_stack_node **a, t_stack_node **b, t_op_counts *counts);
 
 //	aux_rotate.C
 void			rotate(t_stack_node **stack);
@@ -105,10 +111,29 @@ void			free_stack(t_stack_node **stack);
 double			compute_disorder(t_stack_node *a);
 t_strategy		select_adaptive_strategy(t_stack_node *a, double disorder);
 void			sort_three(t_stack_node **a, t_op_counts *counts);
-void			sort_simple(t_stack_node **a, t_stack_node **b, t_op_counts *counts);
-void			sort_insertion(t_stack_node **a, t_stack_node **b, t_op_counts *counts);
-void			sort_medium(t_stack_node **a, t_stack_node **b, t_op_counts *counts);
-void			sort_complex(t_stack_node **a, t_stack_node **b, t_op_counts *counts);
-void			sort_adaptive(t_stack_node **a, t_stack_node **b, t_op_counts *counts);
+void			sort_simple(t_stack_node **a, t_stack_node **b, t_op_counts *c);
+void			sort_insertion(t_stack_node **a, t_stack_node **b,
+					t_op_counts *c);
+void			sort_medium(t_stack_node **a, t_stack_node **b, t_op_counts *c);
+void			sort_complex(t_stack_node **a, t_stack_node **b,
+					t_op_counts *c);
+void			sort_adaptive(t_stack_node **a, t_stack_node **b,
+					t_op_counts *c);
+
+//	sorting helpers
+int				is_sorted_stack(t_stack_node *stack);
+void			sort_small_stack(t_stack_node **a, t_op_counts *counts);
+int				find_min_pos(t_stack_node *stack);
+int				find_max_pos(t_stack_node *stack);
+void			rotate_a_to_top(t_stack_node **s, int p, t_op_counts *c);
+void			rotate_b_to_top(t_stack_node **s, int p, t_op_counts *c);
+int				set_indexes(t_stack_node *a);
+int				find_insert_pos(t_stack_node *a, int value);
+
+//	parsing/bench
+int				parse_args(int argc, char **argv, t_stack_node **a,
+					t_parse_opts *opts);
+void			output_bench(double disorder, t_strategy strategy,
+					t_strategy actual, t_op_counts counts);
 
 #endif

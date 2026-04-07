@@ -12,7 +12,7 @@
 
 #include "push_swap.h"
 
-/*First node is sent to the bottom of the stack*/
+/* Move top node to bottom of the same stack. */
 void	rotate(t_stack_node **stack)
 {
 	t_stack_node	*last_node;
@@ -29,6 +29,7 @@ void	rotate(t_stack_node **stack)
 	last_node->next->next = NULL;
 }
 
+/* Rotate A + emit operation. */
 void	ra(t_stack_node **a, t_op_counts *counts)
 {
 	rotate(a);
@@ -36,6 +37,7 @@ void	ra(t_stack_node **a, t_op_counts *counts)
 	write(1, "ra\n", 3);
 }
 
+/* Rotate B + emit operation. */
 void	rb(t_stack_node **b, t_op_counts *counts)
 {
 	rotate(b);
@@ -43,6 +45,7 @@ void	rb(t_stack_node **b, t_op_counts *counts)
 	write(1, "rb\n", 3);
 }
 
+/* Rotate both stacks + emit operation. */
 void	rr(t_stack_node **a, t_stack_node **b, t_op_counts *counts)
 {
 	rotate(a);
