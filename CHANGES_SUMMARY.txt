@@ -1,0 +1,61 @@
+================================================================================
+                    PUSH_SWAP CHANGES SUMMARY (APRIL 2026)
+================================================================================
+
+1) LIBFT REMOVED
+--------------------------------------------------------------------------------
+- Deleted `libft/` from the project.
+- Removed all Makefile references to `LIBFT_DIR`, `libft.a`, and sub-make calls.
+- Build is now fully local and self-contained.
+
+
+2) LOCAL REPLACEMENTS ADDED
+--------------------------------------------------------------------------------
+- Added `ft_split.c` to replace parser dependency.
+- Added `string_utils.c` with `ps_strlcpy`.
+- `bench.c` now uses `ps_strlcpy` instead of direct `strlcpy`.
+
+
+3) HEADER / USAGE UPDATES
+--------------------------------------------------------------------------------
+- Updated `push_swap.h`:
+  - Added declarations for `ft_split` and `ps_strlcpy`.
+- Updated `parsing.c`:
+  - Removed redundant local forward declaration of `ft_split`.
+- Updated `Makefile`:
+  - Added `ft_split.c` and `string_utils.c` to `SRC`.
+  - Removed all libft linking/build steps.
+
+
+4) DOCUMENTATION UPDATED
+--------------------------------------------------------------------------------
+- Updated `README.md` to reflect no-`libft` architecture.
+- Updated `PROJECT_ANALYSIS.txt` with current project structure and priorities.
+- Updated `DETAILED_FLOW.txt` keeping the detailed visual/graphic style.
+- Updated `OPTIMIZATION_GUIDE.txt` to remove completed `libft` task and keep
+  only pending/optional optimizations.
+- Updated `desc.txt` dependency note to reflect local utilities.
+
+
+5) VALIDATION RESULTS
+--------------------------------------------------------------------------------
+Build:
+- `make fclean && make` -> SUCCESS
+
+Functional tests (`checker_linux`):
+- default and quoted input cases -> OK
+- forced strategy cases (`--simple`, `--insertion`, `--medium`, `--complex`) -> OK
+
+Error handling tests:
+- duplicate values -> Error
+- overflow value -> Error
+- invalid token -> Error
+
+
+6) CURRENT STATUS
+--------------------------------------------------------------------------------
+- Project compiles and runs correctly.
+- No runtime dependency on `libft` remains.
+- All affected core files are updated and consistent.
+
+================================================================================

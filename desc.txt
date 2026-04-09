@@ -9,8 +9,8 @@ and how the whole program satisfies push_swap mandatory checks.
 Important Scope Note
 --------------------
 This guide documents the project source files in the repository root.
-The libft folder contains standard helper functions used by parsing and build,
-but those files are not part of push_swap algorithm logic itself.
+Utility helpers (`ft_split.c`, `string_utils.c`) are local files in the root,
+so the project has no external helper-library dependency.
 
 
 1) Program-Level Execution Flow

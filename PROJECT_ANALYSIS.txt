@@ -1,0 +1,152 @@
+================================================================================
+                         PUSH_SWAP PROJECT ANALYSIS
+================================================================================
+
+PROJECT OVERVIEW
+================================================================================
+This project implements `push_swap` with multiple sorting strategies and an
+adaptive selector based on stack size + disorder ratio.
+
+Current state (important):
+- The project is now self-contained.
+- `libft/` has been removed.
+- Local replacements are in place:
+  - `ft_split.c`   (argument tokenization)
+  - `string_utils.c` (`ps_strlcpy` for benchmark labels)
+
+
+CURRENT FILE STRUCTURE
+================================================================================
+Core files:
+  - push_swap.c          : main flow (parse -> select -> sort -> free)
+  - push_swap.h          : shared structures + declarations
+  - parsing.c            : flags + input parsing + validation
+
+Stack and operation layer:
+  - stack_utils.c        : stack construction and cleanup
+  - aux_swap.c           : sa/sb/ss
+  - aux_push.c           : pa/pb
+  - aux_rotate.c         : ra/rb/rr
+  - aux_reverse_rotate.c : rra/rrb/rrr
+
+Sorting layer:
+  - sorting.c            : disorder metric + adaptive strategy selection
+  - sorting_common.c     : sorted checks + tiny-case helpers
+  - sorting_simple.c     : simple/selection-like strategy
+  - sorting_insertion.c  : insertion-style strategy
+  - sorting_medium.c     : chunk strategy for medium sizes
+  - sorting_complex.c    : radix-style strategy for large inputs
+  - sorting_rotate.c     : find min/max position + shortest rotations
+  - sorting_index.c      : rank/index setup + insertion position
+
+Local utility layer:
+  - ft_split.c           : local split implementation
+  - string_utils.c       : `ps_strlcpy`
+
+Other:
+  - bench.c              : `--bench` output to stderr
+  - Makefile             : single-project build (no sub-library)
+  - checker_linux        : validator binary
+
+
+KEY DATA STRUCTURES
+================================================================================
+`t_stack_node` (doubly linked list)
+- `number`       : raw input value
+- `index`        : normalized rank (for medium/radix strategies)
+- `previous/next`: links
+- extra metadata fields available for strategy extensions
+
+`t_op_counts`
+- counts each emitted operation:
+  `sa sb ss pa pb ra rb rr rra rrb rrr`
+
+`t_strategy`
+- `SIMPLE`, `INSERTION`, `MEDIUM`, `COMPLEX`, `ADAPTIVE`
+
+
+EXECUTION FLOW (HIGH LEVEL)
+================================================================================
+1. `main` initializes A/B + counters.
+2. `parse_args` validates inputs and builds stack A.
+3. `compute_disorder` measures how unsorted A is.
+4. Strategy is selected (forced flag or adaptive).
+5. Chosen sorter emits operation sequence.
+6. Optional `--bench` data prints to stderr.
+7. Both stacks are freed before exit.
+
+
+WHAT CHANGED RECENTLY
+================================================================================
+1) Removed `libft` dependency from build
+- `Makefile` no longer compiles/links `libft/libft.a`.
+
+2) Added local utility implementations
+- `ft_split.c` now provides `ft_split` used by `parsing.c`.
+- `string_utils.c` now provides `ps_strlcpy` used by `bench.c`.
+
+3) Updated includes/declarations
+- `push_swap.h` now declares `ft_split` and `ps_strlcpy`.
+- `parsing.c` no longer uses a local forward declaration for split.
+- `bench.c` now uses `ps_strlcpy` instead of direct `strlcpy`.
+
+4) Documentation synced
+- README and text guides now reflect no-`libft` architecture.
+
+
+CURRENT STRENGTHS
+================================================================================
+- Clean strategy separation by file.
+- Adaptive approach gives good practical behavior across input patterns.
+- Correct operation vocabulary and checker-compatible output.
+- Clear error path (`Error\n` on invalid input).
+- Memory cleanup is centralized and reliable.
+
+
+REMAINING OPTIMIZATION OPPORTUNITIES
+================================================================================
+HIGH IMPACT
+1. Buffer operation output
+   - Current: one `write` per op.
+   - Better: append operations to a buffer, flush once/end.
+
+2. Reduce repeated full-list traversals
+   - Current: frequent `stack_size()` calls in hot paths.
+   - Better: cache sizes where possible and update on push/pop.
+
+MEDIUM IMPACT
+3. Improve duplicate detection complexity in parser
+   - Current: O(n²) linked-list duplicate scans.
+   - Better: temp array + sort/check neighbors (O(n log n)).
+
+4. Improve index assignment complexity
+   - Current: rank via `count_lower` loop (O(n²)).
+   - Better: sorted copy + binary search mapping (O(n log n)).
+
+5. Tune adaptive thresholds empirically
+   - Keep same strategy set, adjust cutoffs by benchmark datasets.
+
+LOW-MEDIUM IMPACT
+6. Better combined rotations in strategy internals
+   - Explore more `rr` / `rrr` opportunities in insertion/chunk phases.
+
+
+CURRENT DEPENDENCIES
+================================================================================
+Standard headers used:
+- `unistd.h`, `stdlib.h`, `string.h`, `stdio.h`, `stdbool.h`, `limits.h`
+
+No external library folders required.
+
+
+PRACTICAL VALIDATION CHECKLIST
+================================================================================
+- `make fclean && make`
+- `./push_swap 2 1 | ./checker_linux 2 1`
+- `./push_swap "3 2 1" | ./checker_linux 3 2 1`
+- invalid input checks:
+  - duplicate
+  - overflow
+  - non-numeric token
+
+================================================================================

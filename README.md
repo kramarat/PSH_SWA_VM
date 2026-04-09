@@ -32,7 +32,8 @@ The source is deliberately split into small, focused files — each with at most
 | `sorting_insertion.c` | Insertion-based O(n²) sort |
 | `sorting_medium.c` | Chunk-based O(n√n) sort |
 | `sorting_complex.c` | Radix O(n log n) sort |
-| `libft/` | Standard function library (ft_split used for parsing) |
+| `ft_split.c` | Local split implementation used by parser |
+| `string_utils.c` | Local string helpers (`ps_strlcpy`) |
 
 ---
 
@@ -42,7 +43,7 @@ The source is deliberately split into small, focused files — each with at most
 ```
 make
 ```
-Builds `push_swap` with `-Wall -Werror -Wextra`. Also compiles `libft/libft.a` first.
+Builds `push_swap` with `-Wall -Werror -Wextra`.
 
 ### Execution
 ```
@@ -196,9 +197,9 @@ A value of `0.0` means fully sorted; `1.0` means fully reversed. This is calcula
 
 ---
 
-## libft Dependency
+## Local Utility Dependency
 
-The project includes `libft/` as required by the 42 subject, which mandates it be compiled as a sub-library. The only libft function called by the project is `ft_split` (in `parsing.c`), used to tokenise space-separated argument strings.
+The project is now self-contained and does not depend on `libft/`. Input tokenisation is handled by local `ft_split` in `ft_split.c`, and bounded string copy for benchmark labels is provided by `ps_strlcpy` in `string_utils.c`.
 
 ---
 

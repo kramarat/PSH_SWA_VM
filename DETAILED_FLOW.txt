@@ -1,0 +1,231 @@
+================================================================================
+                  PUSH_SWAP PROJECT - DETAILED FLOW EXPLANATION
+================================================================================
+
+COMPLETE EXECUTION FLOW
+================================================================================
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                          PROGRAM START (main)                              │
+│                         push_swap.c (entry point)                          │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                      │
+                                      ▼
+        ┌─────────────────────────────────────────────────────────┐
+        │ 1. Initialize stack A = NULL, stack B = NULL           │
+        │ 2. Zero operation counters (t_op_counts)               │
+        │ 3. If argc == 1, exit with success                     │
+        └─────────────────────────────────────────────────────────┘
+                                      │
+                                      ▼
+        ┌─────────────────────────────────────────────────────────┐
+        │           LOAD INPUT (load_input function)             │
+        │          Returns: -1=error, 0=empty, 1=success         │
+        └─────────────────────────────────────────────────────────┘
+                                      │
+                                      ▼
+        ┌─────────────────────────────────────────────────────────┐
+        │         PARSE ARGUMENTS (parse_args in parsing.c)      │
+        └─────────────────────────────────────────────────────────┘
+                │       │        │              │
+                │       │        └──────┐────────────────────────────┐
+                │       ▼               ▼                            ▼
+       Flags   "Quoted values"     Numbers                 Validation failures
+       │        (single arg)        (multi args)           (error path)
+       │        │                   │                      │
+       ├─────┐  │                   │                ┌─────┴─────────────┐
+       │ ▼   │  ▼                   ▼                ▼                   ▼
+    --simple parse_values()   parse_values()    invalid token        duplicate
+    --insertion               │                 / bad sign            detected
+    --medium   ┌──────────────────────────┐
+    --complex  │ local ft_split(arg, ' ') │
+    --adaptive │ from ft_split.c          │
+    --bench    └──────────────────────────┘
+       │               │
+       │               ▼
+       │        ┌─────────────────────────┐
+       │        │ For each token:         │
+       │        │ - is_valid_int()        │
+       │        │ - range check            │
+       │        │ - duplicate check        │
+       │        │ - add_node() to stack A  │
+       │        └─────────────────────────┘
+       │
+       └──────────────────────────┬──────────────────────────┘
+                                  │
+                                  ▼
+        ┌─────────────────────────────────────────────────────────┐
+        │  Stack A built as doubly-linked list (stack B empty)  │
+        └─────────────────────────────────────────────────────────┘
+
+
+STRATEGY SELECTION
+================================================================================
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│            CALCULATE DISORDER (compute_disorder in sorting.c)             │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                      │
+                    ┌─────────────────┴─────────────────┐
+                    │                                   │
+                    ▼                                   ▼
+         Count inversions                     Count total pairs
+         (left > right)                       (all combinations)
+                    │                                   │
+                    └─────────────────┬─────────────────┘
+                                      ▼
+                             disorder = inversions / pairs
+                              0.0 sorted ... 1.0 reversed
+                                      │
+                                      ▼
+        ┌─────────────────────────────────────────────────────────┐
+        │ SELECT STRATEGY (select_adaptive_strategy in sorting.c)│
+        └─────────────────────────────────────────────────────────┘
+                                      │
+                   ┌──────────────────┴──────────────────┐
+                   │                                     │
+                   ▼                                     ▼
+             Forced by flag?                        Adaptive mode
+            (--simple etc.)                           thresholds
+                   │                                     │
+                   │                           ┌───────────────────────┐
+                   │                           │ size<=5 or d<0.12     │
+                   │                           │   -> SIMPLE           │
+                   │                           │ size<=32 or d<0.35    │
+                   │                           │   -> INSERTION        │
+                   │                           │ size<=150 or d<0.65   │
+                   │                           │   -> MEDIUM           │
+                   │                           │ else -> COMPLEX       │
+                   │                           └───────────────────────┘
+                   └───────────────┬─────────────────────┘
+                                   ▼
+        ┌─────────────────────────────────────────────────────────┐
+        │           EXECUTE CHOSEN SORT STRATEGY                 │
+        │   Output operations to stdout + optional bench stderr  │
+        └─────────────────────────────────────────────────────────┘
+
+
+SORTING STRATEGIES - HOW EACH WORKS
+================================================================================
+
+STRATEGY 1: SIMPLE (O(n²))
+────────────────────────────────────────────────────────────────────────────────
+Goal:
+- Good for tiny or nearly sorted input.
+
+Flow:
+1. While A has more than 3 elements:
+   - find minimum position in A (`find_min_pos`)
+   - rotate shortest path to top (`rotate_a_to_top`)
+   - `pb` push min to B
+2. Sort remaining 3 in A (`sort_three`)
+3. `pa` everything from B back to A
+
+Result:
+- A sorted ascending, B empty.
+
+
+STRATEGY 2: INSERTION (O(n²))
+────────────────────────────────────────────────────────────────────────────────
+Goal:
+- Better than simple for small-medium moderately shuffled data.
+
+Flow:
+1. Push from A to B until A has exactly 3 elements.
+2. Sort those 3 in A.
+3. For each value on top of B:
+   - compute insertion position in A (`find_insert_pos`)
+   - rotate A to that position
+   - `pa` push value into proper place
+4. Rotate A so minimum is at top.
+
+Result:
+- A sorted, local rotations reduce unnecessary movement.
+
+
+STRATEGY 3: MEDIUM (O(n√n))
+────────────────────────────────────────────────────────────────────────────────
+Goal:
+- Chunk approach for medium sizes.
+
+Flow:
+1. Normalize ranks (`set_indexes`) from 0..n-1.
+2. Compute `chunk_size = ceil(sqrt(n))`.
+3. Push A->B by chunk windows:
+   - low index: `pb` (and sometimes `rb`)
+   - too high: `ra`
+4. Rebuild A by repeatedly extracting max from B:
+   - find max pos in B
+   - rotate B shortest path
+   - `pa`
+
+Result:
+- Balanced operation count on medium datasets.
+
+
+STRATEGY 4: COMPLEX / RADIX (O(n log n))
+────────────────────────────────────────────────────────────────────────────────
+Goal:
+- Scales best for large or highly disordered inputs.
+
+Flow:
+1. Normalize ranks (`set_indexes`).
+2. For each bit position from LSB to MSB:
+   - iterate all current A nodes:
+     - bit=1 -> `ra`
+     - bit=0 -> `pb`
+   - move everything back with `pa`
+3. Repeat until all bits processed.
+
+Result:
+- Deterministic large-scale performance.
+
+
+OPERATIONS REFERENCE (OUTPUT CONTRACT)
+================================================================================
+Valid emitted operations are only:
+- swap: `sa`, `sb`, `ss`
+- push: `pa`, `pb`
+- rotate: `ra`, `rb`, `rr`
+- reverse rotate: `rra`, `rrb`, `rrr`
+
+All are emitted by wrappers in `aux_*.c`, keeping operation vocabulary safe.
+
+
+BENCH FLOW (`--bench`)
+================================================================================
+When `--bench` is enabled:
+1. Program still outputs operations to stdout as usual.
+2. Additional diagnostics go to stderr from `bench.c`:
+   - disorder
+   - selected strategy
+   - total operations
+   - per-operation breakdown
+3. String formatting uses local `ps_strlcpy` (`string_utils.c`).
+
+
+DEPENDENCY / BUILD FLOW
+================================================================================
+Old state:
+- Build required `libft/libft.a`.
+
+Current state:
+- Build compiles only project-local sources.
+- Local helper files replace needed utility functions:
+  - `ft_split.c`
+  - `string_utils.c`
+- No sub-library compilation step remains in Makefile.
+
+
+CHECKER VALIDATION FLOW
+================================================================================
+1. Generate operations:
+   `./push_swap <args>`
+2. Pipe into checker:
+   `./push_swap <args> | ./checker_linux <args>`
+3. Expected:
+   - `OK` for valid sorted result
+   - `KO` if operations are wrong
+   - `Error` for invalid input
+
+================================================================================

@@ -1,0 +1,139 @@
+================================================================================
+              PUSH_SWAP OPTIMIZATION GUIDE - CURRENT ROADMAP
+================================================================================
+
+CONTEXT
+================================================================================
+`libft` removal is already completed and integrated.
+This guide now includes only the optimizations still pending or optional.
+
+Current utility replacements already in project:
+- `ft_split.c`
+- `string_utils.c` (`ps_strlcpy`)
+
+
+PRIORITY 1 - OUTPUT BUFFERING (HIGH)
+================================================================================
+Current behavior:
+- Every operation calls `write(1, "op\n", len)` directly.
+
+Optimization idea:
+- Add a global/local output buffer.
+- Append operations during sorting.
+- Flush once at end (or when near capacity).
+
+Why it matters:
+- Significantly reduces syscall overhead on large inputs.
+
+Estimated impact:
+- Runtime improvement is often noticeable for 100+ / 500+ datasets.
+
+
+PRIORITY 2 - SIZE CACHING (HIGH)
+================================================================================
+Current behavior:
+- `stack_size()` is repeatedly called inside loops.
+
+Optimization idea:
+- Cache size in strategy loops or context struct.
+- Update cached size after push/pop operations.
+
+Why it matters:
+- Avoids repeated O(n) traversals in hot paths.
+
+Estimated impact:
+- Lower CPU overhead; cleaner cost profile in larger runs.
+
+
+PRIORITY 3 - PARSING COMPLEXITY (MEDIUM)
+================================================================================
+Current behavior:
+- Duplicate check is O(n²): each parsed value scans current stack.
+
+Optimization idea:
+Option A (clean):
+- Parse values into temporary array.
+- Sort array and detect duplicates by neighbor check.
+
+Option B (faster average):
+- Use hash set while parsing.
+
+Why it matters:
+- Better scaling for long argument lists.
+
+
+PRIORITY 4 - INDEX ASSIGNMENT COMPLEXITY (MEDIUM)
+================================================================================
+Current behavior:
+- `set_indexes()` uses `count_lower` for each node (O(n²)).
+
+Optimization idea:
+- Create sorted copy of values.
+- Map each value to rank with binary search.
+
+Why it matters:
+- Medium/complex strategies become cheaper in setup.
+
+
+PRIORITY 5 - ADAPTIVE THRESHOLD TUNING (MEDIUM)
+================================================================================
+Current behavior:
+- Static thresholds in `sorting.c`.
+
+Optimization idea:
+- Run randomized benchmark matrix by size + disorder buckets.
+- Record op counts for each forced strategy.
+- Tune adaptive cutoffs from data.
+
+Why it matters:
+- Reduces operation count without increasing code complexity much.
+
+
+PRIORITY 6 - BETTER `rr` / `rrr` FUSION (LOW-MEDIUM)
+================================================================================
+Current behavior:
+- Rotations are optimized directionally, but combination potential remains.
+
+Optimization idea:
+- In insertion/chunk moves, evaluate both stacks’ pending rotations.
+- Fuse overlapping rotations into `rr` or `rrr` when possible.
+
+Why it matters:
+- Can reduce total move count on specific patterns.
+
+
+PRIORITY 7 - OPTIONAL CODEBASE POLISH (LOW)
+================================================================================
+- Keep current file split for readability + Norminette friendliness.
+- Optionally centralize some tiny helper logic if navigation becomes noisy.
+
+
+SUGGESTED IMPLEMENTATION ORDER
+================================================================================
+1. Output buffering
+2. Size caching in hottest loops
+3. Parsing duplicate optimization
+4. Index assignment optimization
+5. Threshold tuning
+6. Rotation fusion refinements
+
+
+VALIDATION STEPS AFTER EACH OPTIMIZATION
+================================================================================
+Build:
+- `make fclean && make`
+
+Correctness quick checks:
+- `./push_swap 2 1 | ./checker_linux 2 1`
+- `./push_swap 3 2 1 | ./checker_linux 3 2 1`
+- `./push_swap "5 4 3 2 1" | ./checker_linux 5 4 3 2 1`
+
+Error handling checks:
+- `./push_swap 1 2 2`
+- `./push_swap 2147483648`
+- `./push_swap 1 a 3`
+
+Optional memory check:
+- `valgrind --leak-check=full ./push_swap 3 2 1`
+
+================================================================================

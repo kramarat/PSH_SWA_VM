@@ -39,12 +39,13 @@ void	output_bench(double disorder, t_strategy strategy,
 	char	actual_name[24];
 	char	strategy_name[40];
 
-	strlcpy(actual_name, strategy_label(actual), sizeof(actual_name));
+	ps_strlcpy(actual_name, strategy_label(actual), sizeof(actual_name));
 	if (strategy == ADAPTIVE)
 		snprintf(strategy_name, sizeof(strategy_name), "Adaptive -> %s",
 			actual_name);
 	else
-		strlcpy(strategy_name, strategy_label(strategy), sizeof(strategy_name));
+		ps_strlcpy(strategy_name, strategy_label(strategy),
+			sizeof(strategy_name));
 	dprintf(2, "%.2f\n%s\n%d\n", disorder, strategy_name, total_ops(counts));
 	dprintf(2, "sa:%d sb:%d ss:%d pa:%d pb:%d ra:%d rb:%d rr:%d ",
 		counts.sa, counts.sb, counts.ss, counts.pa,

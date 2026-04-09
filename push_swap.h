@@ -136,4 +136,8 @@ int				parse_args(int argc, char **argv, t_stack_node **a,
 void			output_bench(double disorder, t_strategy strategy,
 					t_strategy actual, t_op_counts counts);
 
+//	local_utils
+char			**ft_split(char const *s, char c);
+size_t			ps_strlcpy(char *dst, const char *src, size_t size);
+
 #endif

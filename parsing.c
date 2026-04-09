@@ -12,8 +12,6 @@
 
 #include "push_swap.h"
 
-char	**ft_split(char const *s, char c);
-
 /* Accept optional sign followed by digits only. */
 static int	is_valid_int(char *str)
 {
