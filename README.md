@@ -36,25 +36,6 @@ The source is deliberately split into small, focused files — each with at most
 
 ---
 
-## Norminette Compliance
-
-All `.c` and `.h` files in the project root pass `norminette` with no errors.
-
-Quick check:
-```
-norminette *.c *.h
-```
-
-Key constraints respected throughout:
-- Maximum **5 functions per file** — enforced by splitting sorting into 8 modules
-- Maximum **25 lines per function** — all functions stay within limit
-- Maximum **4 arguments per function** — enforced across all files
-- All **variable declarations at the top** of each function
-- No inline `//` comments — only `/* */` block comments used
-- Brace and spacing rules strictly followed
-
----
-
 ## Instructions
 
 ### Compilation
