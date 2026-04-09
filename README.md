@@ -231,7 +231,8 @@ The project includes `libft/` as required by the 42 subject, which mandates it b
 ---
 
 ## Contributions
-- **valmoral**: Stack operations, parsing, main logic, and sorting algorithms.
-- **kramarat**: Testing, debugging, documentation, and Norminette compliance refactor.
+- **valmoral**: Stack operations, main logic.
+- **kramarat**: Documentation, parsing, and Norminette compliance.
+- **Both**: Sorting algorithms, testing and debugging.
 
 Both contributed significantly, understanding and explaining all code.
