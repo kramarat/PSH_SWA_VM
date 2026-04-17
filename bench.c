@@ -5,12 +5,14 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: valmoral <valmoral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/03/31 00:00:00 by valmoral          #+#    #+#             */
-/*   Updated: 2026/03/31 00:00:00 by valmoral         ###   ########.fr       */
+/*   Created: 2026/04/17 19:04:11 by valmoral          #+#    #+#             */
+/*   Updated: 2026/04/17 19:04:22 by valmoral         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "push_swap.h"
+
+void	print_op_counts(t_op_counts counts, int fd);
 
 /* Human-readable label for a strategy enum value. */
 static const char	*strategy_label(t_strategy strategy)
@@ -32,23 +34,48 @@ static int	total_ops(t_op_counts counts)
 		+ counts.rrb + counts.rrr);
 }
 
+static void	put_double_2_fd(double value, int fd)
+{
+	int	whole;
+	int	frac;
+
+	if (value < 0)
+	{
+		write(fd, "-", 1);
+		value = -value;
+	}
+	whole = (int)value;
+	frac = (int)((value - (double)whole) * 100.0 + 0.5);
+	if (frac == 100)
+	{
+		whole++;
+		frac = 0;
+	}
+	ft_putnbr_fd(whole, fd);
+	write(fd, ".", 1);
+	if (frac < 10)
+		write(fd, "0", 1);
+	ft_putnbr_fd(frac, fd);
+}
+
 /* Print disorder, strategy, total ops, and per-op breakdown to stderr. */
 void	output_bench(double disorder, t_strategy strategy,
 	t_strategy actual, t_op_counts counts)
 {
-	char	actual_name[24];
-	char	strategy_name[40];
-
-	ps_strlcpy(actual_name, strategy_label(actual), sizeof(actual_name));
+	ft_putstr_fd("Disorder: ", 2);
+	put_double_2_fd(disorder, 2);
+	write(2, "\n", 1);
+	ft_putstr_fd("Strategy: ", 2);
 	if (strategy == ADAPTIVE)
-		snprintf(strategy_name, sizeof(strategy_name), "Adaptive -> %s",
-			actual_name);
+	{
+		ft_putstr_fd("Adaptive -> ", 2);
+		ft_putstr_fd((char *)strategy_label(actual), 2);
+	}
 	else
-		ps_strlcpy(strategy_name, strategy_label(strategy),
-			sizeof(strategy_name));
-	dprintf(2, "%.2f\n%s\n%d\n", disorder, strategy_name, total_ops(counts));
-	dprintf(2, "sa:%d sb:%d ss:%d pa:%d pb:%d ra:%d rb:%d rr:%d ",
-		counts.sa, counts.sb, counts.ss, counts.pa,
-		counts.pb, counts.ra, counts.rb, counts.rr);
-	dprintf(2, "rra:%d rrb:%d rrr:%d\n", counts.rra, counts.rrb, counts.rrr);
+		ft_putstr_fd((char *)strategy_label(strategy), 2);
+	write(2, "\n", 1);
+	ft_putstr_fd("Total ops: ", 2);
+	ft_putnbr_fd(total_ops(counts), 2);
+	write(2, "\n", 1);
+	print_op_counts(counts, 2);
 }

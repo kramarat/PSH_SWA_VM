@@ -334,10 +334,10 @@ Q5) How do you test correctness?
 Q6) Common pitfalls?
 - zsh argument splitting, mismatched random lists, sending non-op output to checker.
 
-Q7) Why no libft / ft_printf here?
-- Not required for mandatory push_swap.
-- write + project utilities are enough.
-- Dependency-free repo is valid and cleaner for this implementation.
+Q7) Why libft is included again?
+- The bundled libft keeps the shared helpers in one place.
+- Parser tokenization and common string/memory helpers come from libft.
+- The project still avoids ft_printf; output stays on write + libft helpers.
 
 One-liner for evaluator
-- “This repository intentionally avoids libft/ft_printf because mandatory push_swap does not require them, and parsing/output are implemented with allowed standard functions and project utilities.”
+- “This repository uses the bundled libft for shared helpers, while keeping output on write-based helpers and avoiding ft_printf.”

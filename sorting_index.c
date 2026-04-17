@@ -29,11 +29,19 @@ static int	count_lower(int *arr, int size, int value)
 	return (count);
 }
 
+static void	fill_values(t_stack_node *stack, int *values)
+{
+	while (stack)
+	{
+		*values++ = stack->number;
+		stack = stack->next;
+	}
+}
+
 /* Assign normalized index (rank) to each node value. */
 int	set_indexes(t_stack_node *a)
 {
 	int				size;
-	int				i;
 	int				*values;
 	t_stack_node	*current;
 
@@ -41,13 +49,7 @@ int	set_indexes(t_stack_node *a)
 	values = malloc(sizeof(int) * size);
 	if (!values)
 		return (0);
-	i = 0;
-	current = a;
-	while (current)
-	{
-		values[i++] = current->number;
-		current = current->next;
-	}
+	fill_values(a, values);
 	current = a;
 	while (current)
 	{

@@ -18,8 +18,8 @@
 # include <stdbool.h>
 # include <limits.h>
 # include <stdlib.h>
-# include <string.h>
-# include <stdio.h>
+
+# include "libft/libft.h"
 
 typedef struct s_op_counts
 {
@@ -66,16 +66,16 @@ above_median 	Flags whether this node is nearer to top or bottom of stack.
 *target_node	The node on top of which this node must be pushed.
 *next			Link to next node in stack.									*/
 
-typedef struct s_list
+typedef struct s_stack_node
 {
-	struct s_list	*previous;
-	int				number;
-	int				index;
-	int				cost_to_push;
-	bool			is_cheapest;
-	bool			above_middle;
-	struct s_list	*target_node;
-	struct s_list	*next;
+	struct s_stack_node	*previous;
+	int					number;
+	int					index;
+	int					cost_to_push;
+	bool				is_cheapest;
+	bool				above_middle;
+	struct s_stack_node	*target_node;
+	struct s_stack_node	*next;
 }	t_stack_node;
 
 //	aux_swap.C
@@ -133,11 +133,11 @@ int				find_insert_pos(t_stack_node *a, int value);
 //	parsing/bench
 int				parse_args(int argc, char **argv, t_stack_node **a,
 					t_parse_opts *opts);
+int				match_flag(const char *arg, const char *flag);
+int				parse_long_long(char *str, long long *num);
+int				parse_option(char *arg, t_parse_opts *opts);
+void			free_split(char **split);
 void			output_bench(double disorder, t_strategy strategy,
 					t_strategy actual, t_op_counts counts);
-
-//	local_utils
-char			**ft_split(char const *s, char c);
-size_t			ps_strlcpy(char *dst, const char *src, size_t size);
 
 #endif

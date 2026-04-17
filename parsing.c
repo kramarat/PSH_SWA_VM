@@ -31,22 +31,6 @@ static int	is_valid_int(char *str)
 	return (1);
 }
 
-/* Free a NULL-terminated string array returned by ft_split. */
-static void	free_split(char **split)
-{
-	int	i;
-
-	if (!split)
-		return ;
-	i = 0;
-	while (split[i])
-	{
-		free(split[i]);
-		i++;
-	}
-	free(split);
-}
-
 /* Parse one token, validate range, reject duplicates, append to stack A. */
 static int	parse_value(char *value, t_stack_node **a)
 {
@@ -55,7 +39,8 @@ static int	parse_value(char *value, t_stack_node **a)
 
 	if (!is_valid_int(value))
 		return (0);
-	num = atoll(value);
+	if (!parse_long_long(value, &num))
+		return (0);
 	if (num > INT_MAX || num < INT_MIN)
 		return (0);
 	current = *a;
@@ -77,20 +62,12 @@ static int	parse_values(char *arg, t_stack_node **a)
 
 	values = ft_split(arg, ' ');
 	if (!values || !values[0])
-	{
-		free_split(values);
-		return (0);
-	}
+		return (free_split(values), 0);
 	j = 0;
-	while (values[j])
-	{
-		if (!parse_value(values[j], a))
-		{
-			free_split(values);
-			return (0);
-		}
+	while (values[j] && parse_value(values[j], a))
 		j++;
-	}
+	if (values[j])
+		return (free_split(values), 0);
 	free_split(values);
 	return (1);
 }
@@ -100,24 +77,12 @@ int	parse_args(int argc, char **argv, t_stack_node **a, t_parse_opts *opts)
 {
 	int	i;
 
-	i = 1;
 	opts->strategy = ADAPTIVE;
 	opts->bench = 0;
+	i = 1;
 	while (i < argc)
 	{
-		if (strcmp(argv[i], "--simple") == 0)
-			opts->strategy = SIMPLE;
-		else if (strcmp(argv[i], "--insertion") == 0)
-			opts->strategy = INSERTION;
-		else if (strcmp(argv[i], "--medium") == 0)
-			opts->strategy = MEDIUM;
-		else if (strcmp(argv[i], "--complex") == 0)
-			opts->strategy = COMPLEX;
-		else if (strcmp(argv[i], "--adaptive") == 0)
-			opts->strategy = ADAPTIVE;
-		else if (strcmp(argv[i], "--bench") == 0)
-			opts->bench = 1;
-		else if (!parse_values(argv[i], a))
+		if (!parse_option(argv[i], opts) && !parse_values(argv[i], a))
 			return (0);
 		i++;
 	}

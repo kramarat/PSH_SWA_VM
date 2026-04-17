@@ -9,8 +9,8 @@ and how the whole program satisfies push_swap mandatory checks.
 Important Scope Note
 --------------------
 This guide documents the project source files in the repository root.
-Utility helpers (`ft_split.c`, `string_utils.c`) are local files in the root,
-so the project has no external helper-library dependency.
+Utility helpers now come from the bundled `libft/` directory again,
+so parsing and string helpers are shared with the library build.
 
 
 1) Program-Level Execution Flow

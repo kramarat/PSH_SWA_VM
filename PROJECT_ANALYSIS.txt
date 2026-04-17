@@ -8,11 +8,9 @@ This project implements `push_swap` with multiple sorting strategies and an
 adaptive selector based on stack size + disorder ratio.
 
 Current state (important):
-- The project is now self-contained.
-- `libft/` has been removed.
-- Local replacements are in place:
-  - `ft_split.c`   (argument tokenization)
-  - `string_utils.c` (`ps_strlcpy` for benchmark labels)
+- The project now uses the bundled `libft/` directory again.
+- The root build links against `libft.a`.
+- Shared helpers come from libft instead of root-level replacements.
 
 
 CURRENT FILE STRUCTURE
@@ -39,9 +37,8 @@ Sorting layer:
   - sorting_rotate.c     : find min/max position + shortest rotations
   - sorting_index.c      : rank/index setup + insertion position
 
-Local utility layer:
-  - ft_split.c           : local split implementation
-  - string_utils.c       : `ps_strlcpy`
+Libft layer:
+  - libft/               : shared helpers (`ft_split`, `ft_strlen`, `ft_memset`, ...)
 
 Other:
   - bench.c              : `--bench` output to stderr
@@ -79,19 +76,20 @@ EXECUTION FLOW (HIGH LEVEL)
 WHAT CHANGED RECENTLY
 ================================================================================
 1) Removed `libft` dependency from build
-- `Makefile` no longer compiles/links `libft/libft.a`.
+- `Makefile` now compiles and links `libft/libft.a` again.
 
-2) Added local utility implementations
-- `ft_split.c` now provides `ft_split` used by `parsing.c`.
-- `string_utils.c` now provides `ps_strlcpy` used by `bench.c`.
+2) Removed root-level utility replacements
+- The root `ft_split.c` and `string_utils.c` helpers were removed.
+- `parsing.c` now uses libft `ft_split`.
+- `bench.c` now prints with libft write helpers.
 
 3) Updated includes/declarations
-- `push_swap.h` now declares `ft_split` and `ps_strlcpy`.
-- `parsing.c` no longer uses a local forward declaration for split.
-- `bench.c` now uses `ps_strlcpy` instead of direct `strlcpy`.
+- `push_swap.h` now includes bundled libft headers directly.
+- `parsing.c` uses libft string helpers for flag matching.
+- `bench.c` no longer needs the local bounded-copy helper.
 
 4) Documentation synced
-- README and text guides now reflect no-`libft` architecture.
+- README and text guides now reflect the bundled-libft architecture.
 
 
 CURRENT STRENGTHS
@@ -134,9 +132,10 @@ LOW-MEDIUM IMPACT
 CURRENT DEPENDENCIES
 ================================================================================
 Standard headers used:
-- `unistd.h`, `stdlib.h`, `string.h`, `stdio.h`, `stdbool.h`, `limits.h`
+- `unistd.h`, `stdlib.h`, `stdbool.h`, `limits.h`
 
-No external library folders required.
+Bundled helper library:
+- `libft/`
 
 
 PRACTICAL VALIDATION CHECKLIST

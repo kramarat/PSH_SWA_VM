@@ -4,12 +4,13 @@
 
 CONTEXT
 ================================================================================
-`libft` removal is already completed and integrated.
-This guide now includes only the optimizations still pending or optional.
+The project now uses the bundled `libft/` directory again.
+This guide includes only the optimizations still pending or optional.
 
-Current utility replacements already in project:
-- `ft_split.c`
-- `string_utils.c` (`ps_strlcpy`)
+Current shared helpers come from libft:
+- `ft_split`
+- `ft_strlen`
+- `ft_memset`
 
 
 PRIORITY 1 - OUTPUT BUFFERING (HIGH)

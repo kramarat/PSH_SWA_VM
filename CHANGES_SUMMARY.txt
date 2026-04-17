@@ -2,39 +2,35 @@
                     PUSH_SWAP CHANGES SUMMARY (APRIL 2026)
 ================================================================================
 
-1) LIBFT REMOVED
+1) LIBFT RESTORED
 --------------------------------------------------------------------------------
-- Deleted `libft/` from the project.
-- Removed all Makefile references to `LIBFT_DIR`, `libft.a`, and sub-make calls.
-- Build is now fully local and self-contained.
+- Reintroduced the bundled `libft/` directory in the build.
+- Root `Makefile` now builds `libft.a` first and links it into `push_swap`.
+- The project uses `ft_split`, `ft_strlen`, `ft_memset`, `ft_strncmp`, and other libft helpers again.
 
 
-2) LOCAL REPLACEMENTS ADDED
+2) ROOT-LEVEL REPLACEMENTS REMOVED
 --------------------------------------------------------------------------------
-- Added `ft_split.c` to replace parser dependency.
-- Added `string_utils.c` with `ps_strlcpy`.
-- `bench.c` now uses `ps_strlcpy` instead of direct `strlcpy`.
+- Removed the root-level `ft_split.c` and `string_utils.c` replacements.
+- `parsing.c` now uses the libft `ft_split` implementation.
+- `bench.c` now formats output with libft write helpers.
 
 
 3) HEADER / USAGE UPDATES
 --------------------------------------------------------------------------------
 - Updated `push_swap.h`:
-  - Added declarations for `ft_split` and `ps_strlcpy`.
+  - Includes the bundled `libft/libft.h`.
+  - Uses a distinct stack node tag to avoid conflicts with `t_list`.
 - Updated `parsing.c`:
-  - Removed redundant local forward declaration of `ft_split`.
+  - Uses `ft_strncmp` + `ft_strlen` for flag matching.
+  - Uses an internal overflow-safe number parser.
 - Updated `Makefile`:
-  - Added `ft_split.c` and `string_utils.c` to `SRC`.
-  - Removed all libft linking/build steps.
+  - Restores the libft sub-build and links `libft.a`.
 
 
 4) DOCUMENTATION UPDATED
 --------------------------------------------------------------------------------
-- Updated `README.md` to reflect no-`libft` architecture.
-- Updated `PROJECT_ANALYSIS.txt` with current project structure and priorities.
-- Updated `DETAILED_FLOW.txt` keeping the detailed visual/graphic style.
-- Updated `OPTIMIZATION_GUIDE.txt` to remove completed `libft` task and keep
-  only pending/optional optimizations.
-- Updated `desc.txt` dependency note to reflect local utilities.
+- Updated `README.md` and the text guides to reflect the restored `libft` dependency.
 
 
 5) VALIDATION RESULTS
@@ -55,7 +51,7 @@ Error handling tests:
 6) CURRENT STATUS
 --------------------------------------------------------------------------------
 - Project compiles and runs correctly.
-- No runtime dependency on `libft` remains.
-- All affected core files are updated and consistent.
+- The root build now relies on the bundled `libft` again.
+- The parser and benchmark output no longer use raw libc string helpers.
 
 ================================================================================

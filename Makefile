@@ -1,4 +1,6 @@
 NAME = push_swap
+LIBFT_DIR = libft
+LIBFT = $(LIBFT_DIR)/libft.a
 
 CC = cc
 CFLAGS = -Wall -Werror -Wextra -g
@@ -6,19 +8,24 @@ CFLAGS = -Wall -Werror -Wextra -g
 SRC = push_swap.c aux_push.c aux_reverse_rotate.c aux_rotate.c aux_swap.c \
 	stack_utils.c sorting.c sorting_common.c sorting_rotate.c sorting_simple.c \
 	sorting_index.c sorting_insertion.c sorting_medium.c sorting_complex.c \
-	parsing.c bench.c ft_split.c string_utils.c
+	parsing.c parsing_utils.c bench.c bench_counts.c
 OBJ = $(SRC:.c=.o)
 
 all: $(NAME)
 
-$(NAME): $(OBJ)
-	$(CC) $(CFLAGS) $(OBJ) -o $(NAME)
+$(NAME): $(LIBFT) $(OBJ)
+	$(CC) $(CFLAGS) $(OBJ) $(LIBFT) -o $(NAME)
+
+$(LIBFT):
+	$(MAKE) -C $(LIBFT_DIR)
 
 clean:
 	rm -f $(OBJ)
+	$(MAKE) -C $(LIBFT_DIR) clean
 
 fclean: clean
 	rm -f $(NAME)
+	$(MAKE) -C $(LIBFT_DIR) fclean
 
 re: fclean all
 

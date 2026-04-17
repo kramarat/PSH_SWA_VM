@@ -63,20 +63,14 @@ int	main(int argc, char **argv)
 
 	a = NULL;
 	b = NULL;
-	memset(&counts, 0, sizeof(t_op_counts));
-	if (argc == 1)
-		return (0);
-	if (load_input(argc, argv, &a, &opts) < 0)
+	ft_bzero(&counts, sizeof(t_op_counts));
+	if (argc > 1)
 	{
-		free_stack(&a);
-		return (1);
+		if (load_input(argc, argv, &a, &opts) >= 0 && a)
+			execute_sort(&a, &b, opts, &counts);
+		else if (a)
+			free_stack(&a);
 	}
-	if (!a)
-	{
-		free_stack(&a);
-		return (0);
-	}
-	execute_sort(&a, &b, opts, &counts);
 	free_stack(&a);
 	free_stack(&b);
 	return (0);

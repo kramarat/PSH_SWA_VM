@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   sorting_simple.c                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: kramarat <kramarat@student.42urduliz.com>  +#+  +:+       +#+        */
+/*   By: valmoral <valmoral@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/03/31 21:33:05 by kramarat          #+#    #+#             */
-/*   Updated: 2026/03/31 21:59:13 by kramarat         ###   ########.fr       */
+/*   Created: 2026/04/17 19:06:01 by valmoral          #+#    #+#             */
+/*   Updated: 2026/04/17 19:06:07 by valmoral         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 

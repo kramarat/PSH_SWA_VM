@@ -38,8 +38,8 @@ COMPLETE EXECUTION FLOW
     --simple parse_values()   parse_values()    invalid token        duplicate
     --insertion               │                 / bad sign            detected
     --medium   ┌──────────────────────────┐
-    --complex  │ local ft_split(arg, ' ') │
-    --adaptive │ from ft_split.c          │
+   --complex  │ ft_split(arg, ' ') from libft │
+   --adaptive │ bundled libft helper     │
     --bench    └──────────────────────────┘
        │               │
        │               ▼
@@ -201,20 +201,15 @@ When `--bench` is enabled:
    - selected strategy
    - total operations
    - per-operation breakdown
-3. String formatting uses local `ps_strlcpy` (`string_utils.c`).
+3. String formatting uses libft write helpers and `ft_put*`.
 
 
 DEPENDENCY / BUILD FLOW
 ================================================================================
-Old state:
-- Build required `libft/libft.a`.
-
-Current state:
-- Build compiles only project-local sources.
-- Local helper files replace needed utility functions:
-  - `ft_split.c`
-  - `string_utils.c`
-- No sub-library compilation step remains in Makefile.
+Build state:
+- Root build compiles the bundled `libft/` first.
+- `libft.a` is linked into `push_swap`.
+- Root-level `ft_split.c` and `string_utils.c` are no longer used.
 
 
 CHECKER VALIDATION FLOW
