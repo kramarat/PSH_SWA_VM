@@ -1,7 +1,7 @@
 NAME = push_swap
 
 CC = cc
-CFLAGS = -Wall -Werror -Wextra
+CFLAGS = -Wall -Werror -Wextra -g
 
 SRC = push_swap.c aux_push.c aux_reverse_rotate.c aux_rotate.c aux_swap.c \
 	stack_utils.c sorting.c sorting_common.c sorting_rotate.c sorting_simple.c \
