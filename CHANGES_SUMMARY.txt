@@ -26,6 +26,9 @@
   - Uses an internal overflow-safe number parser.
 - Updated `Makefile`:
   - Restores the libft sub-build and links `libft.a`.
+- Split helper responsibilities for Norm structure limits:
+  - Added `parsing_utils.c` for parsing subroutines.
+  - Added `bench_counts.c` for benchmark count formatting.
 
 
 4) DOCUMENTATION UPDATED
@@ -53,5 +56,7 @@ Error handling tests:
 - Project compiles and runs correctly.
 - The root build now relies on the bundled `libft` again.
 - The parser and benchmark output no longer use raw libc string helpers.
+- Random correctness checks for 100 and 500 values pass via `checker_linux`.
+- Valgrind reports no leaks on valid and parser-error execution paths.
 
 ================================================================================

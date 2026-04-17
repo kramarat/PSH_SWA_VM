@@ -19,6 +19,7 @@ Core files:
   - push_swap.c          : main flow (parse -> select -> sort -> free)
   - push_swap.h          : shared structures + declarations
   - parsing.c            : flags + input parsing + validation
+  - parsing_utils.c      : parsing helpers (flags/numbers/split cleanup)
 
 Stack and operation layer:
   - stack_utils.c        : stack construction and cleanup
@@ -41,8 +42,9 @@ Libft layer:
   - libft/               : shared helpers (`ft_split`, `ft_strlen`, `ft_memset`, ...)
 
 Other:
-  - bench.c              : `--bench` output to stderr
-  - Makefile             : single-project build (no sub-library)
+  - bench.c              : `--bench` summary output to stderr
+  - bench_counts.c       : per-operation count formatting/output
+  - Makefile             : builds `libft/` then links `libft.a`
   - checker_linux        : validator binary
 
 
@@ -75,7 +77,7 @@ EXECUTION FLOW (HIGH LEVEL)
 
 WHAT CHANGED RECENTLY
 ================================================================================
-1) Removed `libft` dependency from build
+1) Restored `libft` dependency in build
 - `Makefile` now compiles and links `libft/libft.a` again.
 
 2) Removed root-level utility replacements

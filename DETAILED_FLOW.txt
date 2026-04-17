@@ -25,7 +25,7 @@ COMPLETE EXECUTION FLOW
                                       │
                                       ▼
         ┌─────────────────────────────────────────────────────────┐
-        │         PARSE ARGUMENTS (parse_args in parsing.c)      │
+      │   PARSE ARGUMENTS (parsing.c + parsing_utils.c)        │
         └─────────────────────────────────────────────────────────┘
                 │       │        │              │
                 │       │        └──────┐────────────────────────────┐
@@ -201,7 +201,7 @@ When `--bench` is enabled:
    - selected strategy
    - total operations
    - per-operation breakdown
-3. String formatting uses libft write helpers and `ft_put*`.
+3. String/number formatting uses `write` + libft helpers (`ft_itoa`, `ft_strlen`).
 
 
 DEPENDENCY / BUILD FLOW

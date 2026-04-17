@@ -18,7 +18,9 @@ The source is deliberately split into small, focused files — each with at most
 |---|---|
 | `push_swap.c` | Entry point: parse → sort → free |
 | `parsing.c` | CLI argument parsing, validation, duplicate detection |
+| `parsing_utils.c` | Parsing helpers: option matching, number parse, split cleanup |
 | `bench.c` | Benchmark output to stderr (`--bench` flag) |
+| `bench_counts.c` | Benchmark operation-count formatting helpers |
 | `stack_utils.c` | Stack primitives: size, last node, add node, free |
 | `aux_push.c` | `push`, `pa`, `pb` operations |
 | `aux_swap.c` | `swap`, `sa`, `sb`, `ss` operations |
