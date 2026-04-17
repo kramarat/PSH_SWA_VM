@@ -6,26 +6,26 @@ COMPLETE EXECUTION FLOW
 ================================================================================
 
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                          PROGRAM START (main)                              │
-│                         push_swap.c (entry point)                          │
+│                          PROGRAM START (main)                               │
+│                         push_swap.c (entry point)                           │
 └─────────────────────────────────────────────────────────────────────────────┘
                                       │
                                       ▼
         ┌─────────────────────────────────────────────────────────┐
-        │ 1. Initialize stack A = NULL, stack B = NULL           │
-        │ 2. Zero operation counters (t_op_counts)               │
-        │ 3. If argc == 1, exit with success                     │
+        │ 1. Initialize stack A = NULL, stack B = NULL            │
+        │ 2. Zero operation counters (t_op_counts)                │
+        │ 3. If argc == 1, exit with success                      │
         └─────────────────────────────────────────────────────────┘
                                       │
                                       ▼
         ┌─────────────────────────────────────────────────────────┐
-        │           LOAD INPUT (load_input function)             │
-        │          Returns: -1=error, 0=empty, 1=success         │
+        │           LOAD INPUT (load_input function)              │
+        │          Returns: -1=error, 0=empty, 1=success          │
         └─────────────────────────────────────────────────────────┘
                                       │
                                       ▼
         ┌─────────────────────────────────────────────────────────┐
-      │   PARSE ARGUMENTS (parsing.c + parsing_utils.c)        │
+        │   PARSE ARGUMENTS (parsing.c + parsing_utils.c)         │
         └─────────────────────────────────────────────────────────┘
                 │       │        │              │
                 │       │        └──────┐────────────────────────────┐
@@ -38,24 +38,24 @@ COMPLETE EXECUTION FLOW
     --simple parse_values()   parse_values()    invalid token        duplicate
     --insertion               │                 / bad sign            detected
     --medium   ┌──────────────────────────┐
-   --complex  │ ft_split(arg, ' ') from libft │
-   --adaptive │ bundled libft helper     │
+   --complex   │ ft_split(arg, ' ')(libft)│
+   --adaptive  │ bundled libft helper     │
     --bench    └──────────────────────────┘
        │               │
        │               ▼
        │        ┌─────────────────────────┐
        │        │ For each token:         │
        │        │ - is_valid_int()        │
-       │        │ - range check            │
-       │        │ - duplicate check        │
-       │        │ - add_node() to stack A  │
+       │        │ - range check           │
+       │        │ - duplicate check       │
+       │        │ - add_node() to stack A │
        │        └─────────────────────────┘
        │
        └──────────────────────────┬──────────────────────────┘
                                   │
                                   ▼
         ┌─────────────────────────────────────────────────────────┐
-        │  Stack A built as doubly-linked list (stack B empty)  │
+        │  Stack A built as doubly-linked list (stack B empty)    │
         └─────────────────────────────────────────────────────────┘
 
 
@@ -63,7 +63,7 @@ STRATEGY SELECTION
 ================================================================================
 
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│            CALCULATE DISORDER (compute_disorder in sorting.c)             │
+│            CALCULATE DISORDER (compute_disorder in sorting.c)               │
 └─────────────────────────────────────────────────────────────────────────────┘
                                       │
                     ┌─────────────────┴─────────────────┐
@@ -79,7 +79,7 @@ STRATEGY SELECTION
                                       │
                                       ▼
         ┌─────────────────────────────────────────────────────────┐
-        │ SELECT STRATEGY (select_adaptive_strategy in sorting.c)│
+        │ SELECT STRATEGY (select_adaptive_strategy in sorting.c) │
         └─────────────────────────────────────────────────────────┘
                                       │
                    ┌──────────────────┴──────────────────┐
@@ -100,8 +100,8 @@ STRATEGY SELECTION
                    └───────────────┬─────────────────────┘
                                    ▼
         ┌─────────────────────────────────────────────────────────┐
-        │           EXECUTE CHOSEN SORT STRATEGY                 │
-        │   Output operations to stdout + optional bench stderr  │
+        │           EXECUTE CHOSEN SORT STRATEGY                  │
+        │   Output operations to stdout + optional bench stderr   │
         └─────────────────────────────────────────────────────────┘
 
 
