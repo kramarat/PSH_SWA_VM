@@ -1,0 +1,278 @@
+PUSH_SWAP - FULL EXPLANATION (AUTHOR STYLE)
+================================================================================
+
+Hi! I will explain this project the same way I explain it during a 42 peer
+correction: simple, direct, and focused on flow.
+
+1) WHAT THE PROJECT IS
+--------------------------------------------------------------------------------
+My program receives integers and must sort them in ascending order in stack A,
+using only the allowed push_swap operations and a second stack B.
+
+I cannot use random operations or custom commands. I must only print:
+sa sb ss pa pb ra rb rr rra rrb rrr
+
+The goal is not just "sorted". The goal is: sorted with a good number of
+operations.
+
+
+2) MY GLOBAL DESIGN
+--------------------------------------------------------------------------------
+I split the project into clear modules:
+
+- parsing.c / parsing_utils.c
+  Validate input, parse values, reject invalid tokens, reject duplicates,
+  reject overflow/underflow.
+
+- stack_utils.c
+  Doubly linked-list stack helpers (create, append, size, free, etc.).
+
+- aux_*.c
+  Real implementation of all allowed operations (swap/push/rotate/reverse).
+  These wrappers are the only place where operation names are emitted.
+
+- sorting*.c
+  Sorting logic divided by strategy:
+    simple, insertion, medium(chunks), complex(radix), plus common helpers.
+
+- bench.c / bench_counts.c
+  Optional benchmark output (`--bench`) to stderr:
+  disorder, selected strategy, total operations, op breakdown.
+
+
+3) EXECUTION FLOW (END-TO-END)
+--------------------------------------------------------------------------------
+When I run:
+
+    ./push_swap [options] <numbers>
+
+The flow is:
+
+A) main() starts with stack A = NULL, B = NULL, counters = 0.
+
+B) Parse CLI options:
+   --simple --insertion --medium --complex --adaptive --bench
+   If no strategy flag is given, adaptive is the default behavior.
+
+C) Load and validate numbers:
+   - Accept multiple args or quoted values.
+   - Check valid integer format.
+   - Check integer range.
+   - Check duplicates.
+   If anything is wrong, print "Error" to stderr and exit cleanly.
+
+D) Early exits:
+   - No numbers => exit success.
+   - Already sorted => no operations printed.
+
+E) Choose strategy:
+   - Forced by CLI flag, OR
+   - Automatically by adaptive selection using size + disorder score.
+
+F) Run selected sorting algorithm.
+
+G) If `--bench` is active, print diagnostics to stderr.
+
+H) Free both stacks and exit.
+
+
+4) HOW ADAPTIVE SELECTION WORKS
+--------------------------------------------------------------------------------
+Before sorting, I compute a disorder metric:
+
+    disorder = inversions / total_pairs
+
+- disorder = 0.0 -> already sorted
+- disorder = 1.0 -> fully reversed
+
+Then I choose:
+
+- size <= 5 OR disorder < 0.12      -> SIMPLE (O(n^2))
+- size <= 32 OR disorder < 0.35     -> INSERTION (O(n^2))
+- size <= 150 OR disorder < 0.65    -> MEDIUM (O(n*sqrt(n)))
+- otherwise                          -> COMPLEX / RADIX (O(n log n))
+
+Why this design? Because one single algorithm is not optimal for every input
+shape. Adaptive gives practical performance depending on the real data.
+
+
+5) SORTING STRATEGIES (WHAT EACH ONE DOES)
+--------------------------------------------------------------------------------
+A) SIMPLE (selection-like)
+- Repeatedly find minimum in A.
+- Rotate shortest path to bring it to top.
+- Push it to B (`pb`).
+- Sort remaining tiny part in A.
+- Push all back (`pa`).
+Best for tiny or almost sorted input.
+
+B) INSERTION
+- Keep 3 elements in A and sort those 3.
+- Push remaining values to B.
+- Reinsert each value from B into the right position in A.
+- Final rotate so min is on top.
+Good for small/medium and moderate disorder.
+
+C) MEDIUM (chunk/window)
+- Normalize values to indexes [0..n-1].
+- Split range into chunk windows of about sqrt(n).
+- Push chunked values A->B with controlled rotations.
+- Rebuild A by extracting biggest values from B first.
+Balanced for medium size sets.
+
+D) COMPLEX (radix on normalized indexes)
+- Normalize values to indexes [0..n-1].
+- Process bits from least significant to most significant.
+- For each bit pass:
+    bit=0 -> pb
+    bit=1 -> ra
+- Move all back from B to A after each pass.
+Most scalable for large and highly disordered inputs.
+
+
+6) WHY THESE ALGORITHMS (AND NOT THE OTHERS)
+--------------------------------------------------------------------------------
+I tested/compared options by one practical criterion: with push_swap operations,
+which approach gives good move counts, stable behavior, and code that is easy
+to explain during evaluation.
+
+SIMPLE-LAYER CANDIDATES
+- Insertion sort
+  Inserts each element into the correct place in the already-ordered part.
+  In push_swap, this maps well to "rotate to target position + pa".
+- Selection sort
+  Repeatedly find min/max and move it to the final zone.
+  Very straightforward and predictable.
+- Bubble sort
+  Repeated adjacent swaps until sorted.
+  Works on arrays, but in stack ops it tends to explode operation count.
+- Simple min/max approach
+  Specialized variant of selection: always move current minimum (or maximum)
+  with shortest rotation.
+
+Why I chose insertion + min/selection style:
+- They map naturally to available operations.
+- They stay easy to read and defend in peer correction.
+- Bubble was rejected because adjacent-swap behavior is expensive here.
+
+MEDIUM-LAYER CANDIDATES
+- Chunk-based
+  Split normalized ranks into windows/chunks and push by chunk order.
+  Then rebuild from B in controlled order.
+- Block-based
+  Similar idea, but with fixed-size blocks and often more tuning knobs.
+- Bucket sort style
+  Distribute values into buckets/ranges, then merge bucket results.
+  In push_swap this usually adds management overhead.
+- Range-based
+  Push by current rank interval boundaries (a chunk variant).
+
+Why I chose chunk-based:
+- Best balance between move count and implementation complexity.
+- Easy mental model: "send this window, then rebuild from max".
+- Block/bucket variants can work, but they are usually harder to tune and
+  explain for similar practical gains in this project size range.
+
+COMPLEX-LAYER CANDIDATES
+- Radix (binary on normalized indexes)
+  Process bit by bit: bit 0 -> pb, bit 1 -> ra, then pa all back.
+  Deterministic passes and strong scaling.
+- Merge sort adaptation
+  Divide and merge ordered parts.
+  Great on arrays/lists, but stack-operation translation is less direct.
+- Stack partitioning (quick-sort-like)
+  Partition around pivots and recurse on subparts.
+  Can be fast, but behavior and tuning are less predictable.
+- Heap sort adaptation
+  Uses heap property to extract order.
+  Hard to map cleanly to two-stack restricted operations.
+- Binary indexed tree (Fenwick-based support)
+  Data structure for prefix queries/updates, useful for counting/ranks.
+  Not a direct sorting strategy under push_swap ops; adds conceptual overhead.
+
+Why I chose radix for complex mode:
+- It is the clearest high-performance option under push_swap constraints.
+- Deterministic and easy to test (same pass structure every run).
+- Fewer edge-case surprises than merge/partition adaptations in this context.
+- Easier for evaluators to follow step by step.
+
+
+7) DATA STRUCTURE AND SAFETY
+--------------------------------------------------------------------------------
+I use a doubly linked list for stacks so rotations and reverse rotations are
+natural and efficient to express.
+
+Safety choices:
+- strict parsing before any sort
+- centralized operation wrappers
+- clean memory release on error paths
+- no undefined behavior on empty/small stack edge cases
+
+
+8) HOW I DEMONSTRATE IT DURING EVALUATION
+--------------------------------------------------------------------------------
+Typical demo sequence:
+
+1. `make`
+2. Show invalid case -> prints Error
+3. Show simple valid case -> checker says OK
+4. Force each strategy (`--simple`, `--insertion`, `--medium`, `--complex`)
+   and verify each with checker
+5. Use `--adaptive --bench` on different inputs to prove runtime strategy
+   selection and operation counts
+
+That shows correctness + architecture + practical complexity choices.
+
+
+9) WHAT I WANT AN EVALUATOR TO TAKE AWAY
+--------------------------------------------------------------------------------
+- Correctness first: valid parse, valid operations, sorted output.
+- Maintainability: modular files, clear responsibilities.
+- Performance mindset: adaptive strategy, not one-size-fits-all.
+- Defensible complexity: each algorithm used where it makes sense.
+
+
+POSSIBLE EVALUATION QUESTIONS (WITH ANSWERS)
+================================================================================
+
+Q1) Why not always use radix since it scales well?
+A1) Radix is excellent for large n, but on tiny/nearly sorted inputs the setup
+    and passes can cost more than simpler methods. Adaptive selection reduces
+    total operations in practice.
+
+Q2) Why normalize values to indexes?
+A2) It removes dependence on raw integer magnitude/sign and allows deterministic
+    comparisons (especially for radix bit passes and chunking).
+
+Q3) How do you guarantee only allowed instructions are printed?
+A3) All printed ops are centralized in operation wrappers inside aux_*.c.
+    Sorting code calls wrappers, not raw printing.
+
+Q4) What happens with duplicates or invalid integers?
+A4) Parser rejects them immediately, prints "Error" to stderr, frees resources,
+    and exits.
+
+Q5) How do you know adaptive chose the expected strategy?
+A5) With `--bench`, stderr prints both disorder and selected strategy, so I can
+    show the decision path live.
+
+Q6) Why doubly linked list instead of array?
+A6) Rotations/reverse rotations and push/pop style stack operations map cleanly
+    to linked nodes and keep the code straightforward.
+
+Q7) How do you validate final correctness quickly?
+A7) I pipe to checker:
+    `./push_swap <args> | ./checker_linux <args>`
+    and expect OK.
+
+Q8) What are your main complexity classes implemented?
+A8) O(n^2), O(n*sqrt(n)), and O(n log n), selected by input profile.
+
+Q9) Where do benchmark numbers go and why?
+A9) To stderr, so stdout remains pure operation output compatible with checker.
+
+Q10) If input is already sorted, what do you do?
+A10) I exit without printing operations, which is the optimal behavior.
+
+================================================================================
+END
